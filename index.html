@@ -14,19 +14,18 @@
 
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
-            font-family: 'Jua', sans-serif; /* 둥글둥글한 주아체 유지 */
+            font-family: 'Jua', sans-serif;
             background-color: #e0f2e9; 
-            overflow: hidden; /* 지도나 인트로에서 스크롤 방지 */
+            overflow: hidden;
             color: #6d5445;
         }
 
-        /* 뷰 전환을 위한 유틸리티 클래스 */
         .hidden { display: none !important; }
 
-        /* --- 2. 인트로 화면 (로딩 화면) --- */
+        /* --- 2. 인트로 화면 --- */
         #intro-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #f4f1ea; /* 동숲 베이지 배경 */
+            background-color: #f4f1ea;
             display: flex; flex-direction: column;
             justify-content: center; align-items: center;
             z-index: 9999;
@@ -63,7 +62,6 @@
         /* --- 3. 메인 지도 화면 --- */
         #map-screen {
             position: relative; width: 100%; height: 100%;
-            /* [지도 이미지 변경] 실제 배경 이미지가 있다면 'bg.jpg' 등 로컬 경로로 변경하세요. */
             background: 
                 radial-gradient(circle at 20% 30%, #83c497 10%, transparent 20%),
                 radial-gradient(circle at 80% 70%, #83c497 15%, transparent 30%),
@@ -81,73 +79,80 @@
             border: 3px solid #d4c4b7;
         }
 
-        /* 지도 위 구역 (집 + 캐릭터 묶음) */
+        /* 지도 위 구역 (집 + 캐릭터 + 대사 묶음) */
         .map-plot {
             position: absolute; display: flex; flex-direction: column; align-items: center;
             cursor: pointer; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 5;
         }
         .map-plot:hover { transform: scale(1.1) translateY(-10px); z-index: 20; }
 
-        /* 아기자기한 집 디자인 (CSS로 드로잉) */
+        /* 지도용 말풍선 (새로 추가) */
+        .map-bubble {
+            position: absolute; top: -75px;
+            background-color: #ffcf70; color: #6d5445;
+            padding: 8px 15px; border-radius: 15px;
+            font-size: 1rem; font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            white-space: nowrap; opacity: 0;
+            transform: scale(0);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 30; pointer-events: none;
+            border: 2px solid #e6ba65;
+        }
+        .map-bubble::after {
+            content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+            border-width: 8px 8px 0; border-style: solid;
+            border-color: #ffcf70 transparent transparent transparent;
+        }
+        /* 호버 시 말풍선 등장 */
+        .map-plot:hover .map-bubble {
+            opacity: 1; transform: scale(1);
+        }
+
         .house {
             position: relative; width: 70px; height: 50px;
             background-color: #fffaeb; border: 4px solid #8c7662; border-radius: 10px;
-            margin-bottom: -15px; /* 캐릭터가 집 앞에 서 있는 것처럼 겹치게 설정 */
+            margin-bottom: -15px;
             display: flex; justify-content: center; align-items: flex-end;
             box-shadow: 0 8px 0 rgba(0,0,0,0.08); z-index: 1;
         }
-        /* 지붕 */
         .house-roof {
             position: absolute; top: -24px; width: 86px; height: 35px;
-            background-color: var(--house-color, #a2d5c6); /* 팀원 고유 색상 적용 */
+            background-color: var(--house-color, #a2d5c6);
             border: 4px solid #8c7662; border-radius: 20px 20px 8px 8px;
         }
-        /* 굴뚝 */
         .house-chimney {
             position: absolute; top: -35px; right: 8px; width: 14px; height: 20px;
             background-color: #d4c4b7; border: 4px solid #8c7662; border-radius: 4px; z-index: -1;
         }
-        /* 문 */
         .house-door {
             width: 20px; height: 26px; background-color: #c4a482;
             border: 4px solid #8c7662; border-bottom: none; border-radius: 10px 10px 0 0;
         }
 
-        /* 지도 위 캐릭터 핀 */
-        .map-pin {
-            position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center;
-        }
-
+        .map-pin { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; }
         .map-pin img {
             width: 60px; height: 60px; object-fit: cover;
             border-radius: 50%; border: 4px solid var(--house-color, #fff); background-color: #fff;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.2); transition: border-color 0.3s;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.2);
         }
-        /* 캐릭터 아래 그림자 */
         .map-pin::after {
             content: ''; display: block; width: 35px; height: 8px;
             background-color: rgba(0,0,0,0.15); border-radius: 50%; margin-top: -4px; z-index: -1;
         }
 
-        /* 마우스 호버 시 뜨는 동숲 느낌 툴팁 */
         #hover-tooltip {
             position: absolute; display: none;
-            background-color: #ffcf70; padding: 8px 16px; border-radius: 15px;
-            color: #6d5445; box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-            z-index: 200; pointer-events: none; text-align: center;
-            font-size: 1.1rem; font-weight: bold;
-            border: 2px solid #e6ba65;
-        }
-        #hover-tooltip::after {
-            content: ''; position: absolute; top: -8px; left: 15px;
-            border-width: 0 8px 8px 8px; border-style: solid;
-            border-color: transparent transparent #ffcf70 transparent;
+            background-color: rgba(255, 255, 255, 0.9); padding: 5px 12px; border-radius: 12px;
+            color: #6d5445; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            z-index: 200; pointer-events: none; font-size: 0.9rem;
+            border: 2px solid #d4c4b7;
         }
 
-        /* --- 4. 상세 프로필 & 과제 모달 (SPA 화면 전환 방식) --- */
+        /* --- 4. 상세 화면 --- */
         #detail-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(244, 241, 234, 0.95); /* 반투명 배경 */
+            background-color: rgba(244, 241, 234, 0.95);
             display: flex; justify-content: center; align-items: center;
             z-index: 1000; overflow-y: auto; padding: 20px;
             box-sizing: border-box;
@@ -163,7 +168,6 @@
         }
 
         .character-area { position: relative; display: inline-block; margin: 20px 0; }
-
         .cute-img {
             width: 160px; height: 160px; object-fit: cover;
             border-radius: 50%; border: 8px solid var(--theme-color);
@@ -171,7 +175,6 @@
             background-color: #e8f4f1;
         }
         .cute-img:hover { transform: scale(1.05); }
-        .cute-img:active { transform: scale(0.95); }
 
         .speech-bubble {
             position: absolute; top: -50px; left: 50%;
@@ -188,7 +191,6 @@
         }
         .speech-bubble.show { transform: translateX(-50%) scale(1); }
 
-        /* 새로 추가된: 과제 정보 박스 */
         .info-box {
             background-color: #faf8f5; padding: 20px; border-radius: 20px;
             margin-top: 10px; margin-bottom: 25px; text-align: left;
@@ -217,7 +219,6 @@
 </head>
 <body>
 
-    <!-- 1. 인트로 로딩 화면 -->
     <div id="intro-screen">
         <div class="intro-text-box">
             <div class="loading-text">Nook Inc. 전세기 이동 중... ✈️</div>
@@ -228,99 +229,83 @@
         </div>
     </div>
 
-    <!-- 2. 마을 지도 화면 -->
     <div id="map-screen" class="hidden">
         <div class="map-title">🏕️ 우리 팀의 아기자기한 마을 (주민을 클릭해봐!)</div>
         <div id="map-container"></div>
-        
-        <!-- 마우스 호버 툴팁 -->
-        <div id="hover-tooltip">
-            <span id="tooltip-text">방문하기</span>
-        </div>
+        <div id="hover-tooltip"></div>
     </div>
 
-    <!-- 3. 상세 정보 화면 -->
     <div id="detail-screen" class="hidden">
         <div class="detail-card">
             <div class="character-area">
                 <div id="speechBubble" class="speech-bubble">안녕!</div>
                 <img src="" alt="주민 사진" class="cute-img" id="characterImg">
             </div>
-
             <div class="info-box">
-                <h2 id="modal-title">사용자 역할 및 과제 주제</h2>
-                <p id="modal-desc">이 주민이 맡은 구체적인 역할과 과제 설명이 들어갑니다.</p>
-                <ul class="task-list" id="modal-tasks">
-                    <!-- 자바스크립트로 리스트가 채워집니다 -->
-                </ul>
+                <h2 id="modal-title">과제 주제</h2>
+                <p id="modal-desc">설명</p>
+                <ul class="task-list" id="modal-tasks"></ul>
             </div>
-
             <button class="action-btn" id="closeBtn">✈️ 마을 지도로 돌아가기</button>
         </div>
     </div>
 
     <script>
-        // =================================================================
-        // 📝 [데이터 설정] 팀원 5명의 정보를 자유롭게 수정하세요.
-        // =================================================================
         const teamMembers = [
             { 
                 id: 'user1', name: '너굴 팀원', 
-                img: 'image_0.png', 
+                img: 'https://dummyimage.com/150x150/a2d5c6/ffffff.png&text=User+1', 
                 bubble: '기획안은 다 작성했어구리! 📝', color: '#a2d5c6',
-                pos: { top: '35%', left: '25%' }, // 지도 상의 고정 위치 (CSS %)
+                pos: { top: '22%', left: '18%' },
                 modalTitle: '메인 서비스 기획',
-                modalDesc: '마을의 전반적인 서비스 기획과 발전 방향을 수립합니다. 너굴 상점의 수익 모델을 고민하고 있습니다.',
-                modalTasks: ['사용자 요구사항 정의서 작성', '스토리보드(화면 설계서) 제작', '일정 마일스톤 관리']
-            },
-            { 
-                id: 'user2', name: '여울 팀원', 
-                img: 'image_1.png', 
-                bubble: '오늘의 회의록을 공유할게요! 🎤', color: '#ffcf70',
-                pos: { top: '60%', left: '45%' },
-                modalTitle: '프론트엔드 UI/UX 개발',
-                modalDesc: '마을 주민들이 편리하게 이용할 수 있도록 예쁘고 직관적인 안내 데스크(웹 화면)를 만듭니다.',
-                modalTasks: ['마을 메인 지도 인터랙션 구현', '주민 상세 모달 퍼블리싱', '모바일 반응형 최적화']
-            },
-            { 
-                id: 'user3', name: '부엉 팀원', 
-                img: 'image_2.png', 
-                bubble: '새로운 버그를 발굴했어요! 🦴', color: '#d4c4b7',
-                pos: { top: '70%', left: '75%' },
-                modalTitle: '백엔드 서버 구축',
-                modalDesc: '마을의 모든 데이터(화석, 곤충, 물고기 정보 등)를 안전하게 박물관 DB에 저장하고 관리합니다.',
-                modalTasks: ['회원가입 및 인증 API 개발', '박물관 데이터베이스 스키마 설계', '서버 호스팅 및 배포']
+                modalDesc: '마을의 전반적인 서비스 기획과 발전 방향을 수립합니다.',
+                modalTasks: ['요구사항 정의서 작성', '스토리보드 제작', '일정 관리']
             },
             { 
                 id: 'user4', name: 'KK 팀원', 
-                img: 'image_3.png', 
+                img: 'https://dummyimage.com/150x150/558a74/ffffff.png&text=User+4', 
                 bubble: '내 코딩 라이브를 들어볼래? 🎸', color: '#558a74',
-                pos: { top: '25%', left: '80%' },
-                modalTitle: '데이터 분석 및 알고리즘',
-                modalDesc: '마을 주민들의 패턴을 분석하여 가장 인기 있는 노래와 과일의 수요를 예측합니다.',
-                modalTasks: ['주민 행동 로그 데이터 수집', '무값 예측 알고리즘 모델링', '데이터 시각화 대시보드 구축']
+                pos: { top: '22%', left: '72%' },
+                modalTitle: '데이터 분석 알고리즘',
+                modalDesc: '마을 주민들의 패턴을 분석하여 수요를 예측합니다.',
+                modalTasks: ['로그 데이터 수집', '예측 모델링', '데이터 시각화']
+            },
+            { 
+                id: 'user2', name: '여울 팀원', 
+                img: 'https://dummyimage.com/150x150/ffcf70/ffffff.png&text=User+2', 
+                bubble: '오늘의 회의록을 공유할게요! 🎤', color: '#ffcf70',
+                pos: { top: '48%', left: '45%' },
+                modalTitle: '프론트엔드 UI/UX 개발',
+                modalDesc: '편리하고 직관적인 웹 화면을 만듭니다.',
+                modalTasks: ['인터랙션 구현', '상세 모달 제작', '반응형 최적화']
             },
             { 
                 id: 'user5', name: '고순이 팀원', 
-                img: 'image_4.png', 
+                img: 'https://dummyimage.com/150x150/ffb7b2/ffffff.png&text=User+5', 
                 bubble: '버튼 디자인 완성했어용! 🧵', color: '#ffb7b2',
-                pos: { top: '55%', left: '60%' },
-                modalTitle: '브랜드 및 캐릭터 디자인',
-                modalDesc: '마을을 더 귀엽고 포근하게 만들어줄 각종 에셋, 로고, 캐릭터 옷 패턴을 디자인합니다.',
-                modalTasks: ['팀 로고 및 파비콘 디자인', 'UI 컴포넌트(버튼, 핀) 에셋 제작', '발표용 PPT 템플릿 제작']
+                pos: { top: '72%', left: '22%' },
+                modalTitle: '브랜드 캐릭터 디자인',
+                modalDesc: '마을을 포근하게 만들어줄 에셋을 디자인합니다.',
+                modalTasks: ['팀 로고 디자인', 'UI 컴포넌트 제작', 'PPT 템플릿']
+            },
+            { 
+                id: 'user3', name: '부엉 팀원', 
+                img: 'https://dummyimage.com/150x150/d4c4b7/ffffff.png&text=User+3', 
+                bubble: '새로운 버그를 발굴했어요! 🦴', color: '#d4c4b7',
+                pos: { top: '72%', left: '70%' },
+                modalTitle: '백엔드 서버 구축',
+                modalDesc: '마을의 모든 데이터를 안전하게 저장하고 관리합니다.',
+                modalTasks: ['API 개발', 'DB 스키마 설계', '서버 호스팅']
             }
         ];
 
-        // --- 요소 가져오기 ---
         const introScreen = document.getElementById('intro-screen');
         const progressBar = document.getElementById('progress-bar');
         const mapScreen = document.getElementById('map-screen');
         const mapContainer = document.getElementById('map-container');
         const detailScreen = document.getElementById('detail-screen');
-        const hoverTooltip = document.getElementById('hover-tooltip');
-        const tooltipText = document.getElementById('tooltip-text');
+        const tooltip = document.getElementById('hover-tooltip');
         
-        // --- 1. 인트로 로딩 로직 ---
         let width = 0;
         const loadingInterval = setInterval(() => {
             width += 2; 
@@ -332,92 +317,63 @@
                     setTimeout(() => {
                         introScreen.classList.add('hidden');
                         mapScreen.classList.remove('hidden');
-                        renderMap(); // 맵 그리기 시작
+                        renderMap();
                     }, 1000);
                 }, 500);
             }
         }, 30);
 
-        // --- 2. 마을 지도 렌더링 로직 ---
         function renderMap() {
-            mapContainer.innerHTML = ''; // 초기화
-            
+            mapContainer.innerHTML = '';
             teamMembers.forEach(member => {
-                // 1. 전체 구역(Plot) 컨테이너 생성
                 const plot = document.createElement('div');
                 plot.className = 'map-plot';
                 plot.style.top = member.pos.top;
                 plot.style.left = member.pos.left;
-                // 구역 내 CSS 변수로 팀원 색상 지정 (지붕 및 테두리 색상)
                 plot.style.setProperty('--house-color', member.color);
                 
-                // 2. 집(House) 컨테이너 및 요소 생성
+                // 지도용 말풍선 추가
+                const bubble = document.createElement('div');
+                bubble.className = 'map-bubble';
+                bubble.innerText = member.bubble;
+                plot.appendChild(bubble);
+
                 const house = document.createElement('div');
                 house.className = 'house';
-                
-                const roof = document.createElement('div');
-                roof.className = 'house-roof';
-                
-                const chimney = document.createElement('div');
-                chimney.className = 'house-chimney';
-                
-                const door = document.createElement('div');
-                door.className = 'house-door';
-                
-                // 집 조립
-                house.appendChild(chimney);
-                house.appendChild(roof);
-                house.appendChild(door);
+                house.innerHTML = '<div class="house-chimney"></div><div class="house-roof"></div><div class="house-door"></div>';
+                plot.appendChild(house);
 
-                // 3. 핀(캐릭터) 컨테이너 생성
                 const pin = document.createElement('div');
                 pin.className = 'map-pin';
-                
                 const img = document.createElement('img');
                 img.src = member.img;
-                
                 pin.appendChild(img);
-                
-                // 4. 구역(Plot)에 집과 캐릭터 추가
-                plot.appendChild(house);
                 plot.appendChild(pin);
                 
-                // 5. 이벤트 리스너 연결 (집이나 캐릭터 어디든 클릭 가능)
                 plot.addEventListener('click', () => openDetailView(member));
                 
-                // 툴팁 이벤트
                 plot.addEventListener('mousemove', (e) => {
-                    tooltipText.innerHTML = `${member.name}의 집<br><span style="font-size:0.8rem; font-weight:normal;">방문하기 / Visit</span>`;
-                    hoverTooltip.style.display = 'block';
-                    // 마우스 커서를 따라다니도록 설정
-                    hoverTooltip.style.left = (e.pageX + 15) + 'px';
-                    hoverTooltip.style.top = (e.pageY + 15) + 'px';
+                    tooltip.innerText = `${member.name} (클릭하여 방문)`;
+                    tooltip.style.display = 'block';
+                    tooltip.style.left = (e.pageX + 15) + 'px';
+                    tooltip.style.top = (e.pageY + 15) + 'px';
                 });
-                
-                plot.addEventListener('mouseleave', () => {
-                    hoverTooltip.style.display = 'none';
-                });
+                plot.addEventListener('mouseleave', () => tooltip.style.display = 'none');
 
                 mapContainer.appendChild(plot);
             });
         }
 
-        // --- 3. 상세 정보 화면 로직 ---
         let bubbleTimer;
-        
         function openDetailView(member) {
-            // 지도 숨기고 상세화면 표시
             mapScreen.classList.add('hidden');
             detailScreen.classList.remove('hidden');
-            
-            // 데이터 바인딩
             document.documentElement.style.setProperty('--theme-color', member.color);
             document.getElementById('characterImg').src = member.img;
             document.getElementById('speechBubble').innerText = member.bubble;
             document.getElementById('modal-title').innerText = member.modalTitle;
             document.getElementById('modal-desc').innerText = member.modalDesc;
             
-            // 과제 리스트 초기화 및 동적 생성
             const tasksList = document.getElementById('modal-tasks');
             tasksList.innerHTML = ''; 
             member.modalTasks.forEach(task => {
@@ -425,34 +381,24 @@
                 li.innerText = task;
                 tasksList.appendChild(li);
             });
-            
-            // 말풍선 초기화
             document.getElementById('speechBubble').classList.remove('show');
         }
 
-        // --- 4. 기타 이벤트 처리 ---
-        // 모달에서 마을로 돌아가기
         document.getElementById('closeBtn').addEventListener('click', () => {
             detailScreen.classList.add('hidden');
             mapScreen.classList.remove('hidden');
         });
 
-        // 사진 클릭 시 흔들리면서 말풍선 등장 (동숲 감성)
         const charImg = document.getElementById('characterImg');
-        const speechBubble = document.getElementById('speechBubble');
-        
+        const detailBubble = document.getElementById('speechBubble');
         charImg.addEventListener('click', function() {
-            const randomAngle = Math.floor(Math.random() * 30) - 15;
-            charImg.style.transform = `rotate(${randomAngle}deg) scale(0.95)`;
-            
+            const angle = Math.floor(Math.random() * 30) - 15;
+            charImg.style.transform = `rotate(${angle}deg) scale(0.95)`;
             setTimeout(() => { charImg.style.transform = 'rotate(0deg) scale(1.05)'; }, 200);
-
-            speechBubble.classList.add('show');
+            detailBubble.classList.add('show');
             clearTimeout(bubbleTimer);
-
-            bubbleTimer = setTimeout(() => { speechBubble.classList.remove('show'); }, 2500);
+            bubbleTimer = setTimeout(() => { detailBubble.classList.remove('show'); }, 2500);
         });
-
     </script>
 </body>
 </html>
