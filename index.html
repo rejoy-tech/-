@@ -230,7 +230,7 @@
     </div>
 
     <div id="map-screen" class="hidden">
-        <div class="map-title">🏕️ 우리 팀의 아기자기한 마을 (주민을 클릭해봐!)</div>
+        <div class="map-title">🏕️ 모여봐요 바메공 숲</div>
         <div id="map-container"></div>
         <div id="hover-tooltip"></div>
     </div>
@@ -255,11 +255,11 @@
             { 
                 id: 'user1', name: '너굴 팀원', 
                 img: 'image_4.png', 
-                bubble: '기획안은 다 작성했어구리! 📝', color: '#a2d5c6',
+                bubble: '아 왜 눌러요', color: '#a2d5c6',
                 pos: { top: '22%', left: '18%' },
-                modalTitle: '메인 서비스 기획',
-                modalDesc: '마을의 전반적인 서비스 기획과 발전 방향을 수립합니다.',
-                modalTasks: ['요구사항 정의서 작성', '스토리보드 제작', '일정 관리']
+                modalTitle: '박서연',
+                modalDesc: '하하 안녕하세요 박서연이라고 합니다',
+                modalTasks: ['istp', '누워 있는거 짱 좋아함', '아이돌, 애니 주제로 얘기 걸어주면 입에 모터 달고 말할 수도..!']
             },
             { 
                 id: 'user4', name: 'KK 팀원', 
@@ -333,9 +333,12 @@
                 plot.style.setProperty('--house-color', member.color);
                 
                 // 지도용 말풍선 추가
+                // 지도용 말풍선 추가
                 const bubble = document.createElement('div');
                 bubble.className = 'map-bubble';
-                bubble.innerText = member.bubble;
+                // ✨ 대사 대신 스포일러가 없는 귀여운 문구나 이름으로 변경!
+                bubble.innerText = member.name + '의 집'; 
+                // (만약 캐릭터 이름이 나오게 하고 싶다면 bubble.innerText = member.name + '의 집'; 으로 하셔도 좋습니다.)
                 plot.appendChild(bubble);
 
                 const house = document.createElement('div');
