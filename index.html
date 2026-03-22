@@ -20,30 +20,75 @@
             color: #6d5445;
         }
 
-        .hidden { display: none !important; }
+        /* ⭐ 부드러운 화면 전환을 위해 hidden 클래스 수정 (display:none 대신 opacity 사용) */
+        .hidden { 
+            opacity: 0 !important; 
+            visibility: hidden !important; 
+            pointer-events: none !important; 
+        }
+
+        /* 모든 메인 스크린에 공통 전환 효과 적용 */
+        .screen-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            transition: opacity 0.6s ease-in-out, visibility 0.6s ease-in-out;
+            z-index: 100;
+        }
 
         /* --- 2. 인트로 화면 --- */
         #intro-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: #f4f1ea;
             display: flex; flex-direction: column;
             justify-content: center; align-items: center;
             z-index: 9999;
-            transition: opacity 1s ease-out;
         }
 
         .intro-text-box {
-            background-color: #fff; padding: 40px 60px; border-radius: 40px;
+            background-color: #fff; padding: 40px 30px; border-radius: 40px;
             border: 4px dashed #d4c4b7;
             box-shadow: 0 10px 25px rgba(0,0,0,0.08); text-align: center;
             animation: float 3s ease-in-out infinite;
+            width: 90%; /* 화면 크기에 맞춰 반응형으로 조절 */
+            max-width: 500px; /* 최대 크기 제한 */
+            box-sizing: border-box;
         }
 
-        .loading-text { font-size: 2.2rem; color: #558a74; margin-bottom: 5px; }
-        .loading-text-en { font-size: 1.2rem; color: #928377; margin-bottom: 25px;}
+        .loading-text { font-size: 1.8rem; color: #558a74; margin-bottom: 5px; word-break: keep-all; }
+        .loading-text-en { font-size: 1.1rem; color: #928377; margin-bottom: 25px;}
         
+        /* ⭐ 인트로 하단 영역 고정: 버튼과 로딩바 교체 시 박스 크기 변경(덜컹거림) 방지 */
+        .intro-action-area {
+            position: relative;
+            width: 100%;
+            height: 70px; /* 고정된 높이를 주어 네모 상자가 찌그러지지 않게 방어 */
+        }
+
+        #startBtn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            margin: 0;
+            transition: all 0.4s ease-in-out;
+        }
+        
+        #startBtn.hidden {
+            transform: translate(-50%, -50%) scale(0.8) !important;
+        }
+
+        #loading-area {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            transition: all 0.4s ease-in-out;
+            transition-delay: 0.1s; /* 버튼이 살짝 사라진 뒤 부드럽게 등장 */
+        }
+
         .progress-bar-container { 
-            width: 600px; height: 15px; 
+            width: 100%; /* 고정 픽셀 대신 상자에 꽉 차도록 변경 */
+            height: 15px; 
             background-color: #e8f4f1; border-radius: 15px; 
             overflow: hidden; border: 2px solid #a2d5c6;
             margin: 0 auto;
@@ -62,13 +107,13 @@
 
         /* --- 3. 메인 지도 화면 --- */
         #map-screen {
-            position: relative; width: 100%; height: 100%;
             background: 
                 radial-gradient(circle at 20% 30%, #83c497 10%, transparent 20%),
                 radial-gradient(circle at 80% 70%, #83c497 15%, transparent 30%),
                 radial-gradient(circle at 50% 50%, #a4e0b7 40%, transparent 60%);
             background-color: #92d3a6;
             background-size: cover; background-position: center;
+            z-index: 100;
         }
 
         .map-title {
@@ -80,7 +125,7 @@
             border: 3px solid #d4c4b7;
         }
 
-        /* 지도 위 구역 (집 + 캐릭터 + 대사 묶음) */
+        /* 지도 위 구역 */
         .map-plot {
             position: absolute; display: flex; flex-direction: column; align-items: center;
             cursor: pointer; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 5;
@@ -151,12 +196,12 @@
 
         /* --- 4. 상세 화면 (모달 배경) --- */
         #detail-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(244, 241, 234, 0.95);
             display: flex; justify-content: center; align-items: center;
-            z-index: 1000; overflow-y: auto; padding: 20px;
+            z-index: 500; overflow-y: auto; padding: 20px;
             box-sizing: border-box;
-            transition: background 0.4s ease-in-out; 
+            background-size: cover; 
+            background-position: center;
         }
 
         .detail-card {
@@ -217,7 +262,6 @@
         }
         .action-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #3a6352; }
         
-        /* 돌아가기 버튼 전용 색상 */
         .return-btn {
             background-color: #d4c4b7;
             box-shadow: 0 6px 0 #bcaea2;
@@ -230,43 +274,77 @@
             from { opacity: 0; transform: scale(0.8); }
             to { opacity: 1; transform: scale(1); }
         }
+
+        /* --- 5. 엔딩 화면 및 페이드 오버레이 --- */
+        #ending-screen {
+            background-color: #f4f1ea;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 2000;
+        }
+        .ending-card {
+            background-color: #fff; padding: 40px; border-radius: 30px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+            text-align: center; border: 5px dashed #a2d5c6;
+            max-width: 600px; width: 90%;
+        }
+        .ending-card img {
+            width: 100%; max-height: 400px; object-fit: cover;
+            border-radius: 20px; margin-bottom: 25px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .ending-text { font-size: 1.8rem; color: #558a74; line-height: 1.5; }
+        .ending-sub-text { font-size: 1.2rem; color: #887a6f; margin-top: 15px; }
+
+        /* ⭐ 자연스러운 화면 전환을 담당하는 오버레이 (화이트아웃 효과) */
+        #fade-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #f4f1ea; /* 부드러운 베이지/화이트 색상 */
+            z-index: 10000; 
+            opacity: 0; 
+            pointer-events: none;
+            transition: opacity 1s ease-in-out; /* 1초 동안 천천히 화면을 덮음 */
+        }
+        #fade-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
     </style>
 </head>
 <body>
 
-    <!-- ========================================== -->
-    <!-- 🎵 [수정칸 1] BGM 음악 파일 설정            -->
-    <!-- src 안에 구하신 배경음악 파일 이름(.mp3)을 넣으세요 -->
-    <!-- ========================================== -->
     <audio id="bgm-audio" loop>
         <source src="bgm\🏝모동숲 오프닝 브금 1hour.m4a" type="audio/mpeg">
     </audio>
 
-    <div id="intro-screen">
+    <!-- 화면 전환용 오버레이 막 -->
+    <div id="fade-overlay"></div>
+
+    <div id="intro-screen" class="screen-layer">
         <div class="intro-text-box">
             <div class="loading-text">Nook Inc. 패키지 투어 안내데스크 🍃</div>
             <div class="loading-text-en">Welcome to Bamegong Forest</div>
             
-            <!-- ⭐ 시작(탑승) 버튼 추가 -->
-            <button class="action-btn" id="startBtn" style="margin-top: 30px; width: 80%;">비행기 탑승하기 ✈️</button>
+            <!-- ⭐ 액션 영역을 고정된 컨테이너로 감싸기 -->
+            <div class="intro-action-area">
+                <button class="action-btn" id="startBtn">비행기 탑승하기 ✈️</button>
 
-            <!-- 탑승 버튼을 누르면 이 로딩 영역이 나타납니다 -->
-            <div id="loading-area" class="hidden" style="margin-top: 30px;">
-                <div class="loading-text-en" style="margin-bottom: 10px;">바메공 숲으로 이동 중...</div>
-                <div class="progress-bar-container">
-                    <div class="progress-bar" id="progress-bar"></div>
+                <div id="loading-area" class="hidden">
+                    <div class="loading-text-en" style="margin-bottom: 10px;">바메공 숲으로 이동 중...</div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progress-bar"></div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="map-screen" class="hidden">
+    <div id="map-screen" class="screen-layer hidden">
         <div class="map-title">🏕️ 모여봐요 바메공 숲</div>
         <div id="map-container"></div>
         <div id="hover-tooltip"></div>
     </div>
 
-    <div id="detail-screen" class="hidden">
+    <div id="detail-screen" class="screen-layer hidden">
         <div class="detail-card">
             <div class="character-area">
                 <div id="speechBubble" class="speech-bubble">안녕!</div>
@@ -281,15 +359,26 @@
         </div>
     </div>
 
+    <!-- 엔딩 화면 -->
+    <div id="ending-screen" class="screen-layer hidden">
+        <div class="ending-card">
+            <!-- 단체 사진 주소 (임시로 생성된 이미지 URL 적용) -->
+            <img src="gr.png" alt="바메공 마을 단체 사진">
+            <div class="ending-text">
+                바메공 숲의 모든 주민들을 만나셨군요! 🎉
+            </div>
+            <div class="ending-sub-text">
+                앞으로 저희 5명이 함께 만들어갈<br>개성 넘치는 멋진 프로젝트를 기대해 주세요! 🍃
+            </div>
+        </div>
+    </div>
+
     <script>
-        // ==========================================
-        // 📝 [수정칸 2] 팀원 데이터 설정
-        // ==========================================
         const teamMembers = [
             { 
                 id: 'user1', name: '박서연', 
                 img: 'image_4.png', 
-                bgUrl: 'be/박서연.jpg', // 예: 'bg_seoyeon.jpg'
+                bgUrl: 'be/박서연.jpg',
                 bubble: '아 왜 눌러요', color: '#a2d5c6',
                 pos: { top: '22%', left: '18%' },
                 modalTitle: '박서연',
@@ -299,7 +388,7 @@
             { 
                 id: 'user4', name: '조용화', 
                 img: 'image_3.png', 
-                bgUrl: 'be/jo.jpg', // 예: 'bg_yonghwa.jpg'
+                bgUrl: 'be/jo.jpg',
                 bubble: '저 아세요?', color: '#558a74',
                 pos: { top: '22%', left: '72%' },
                 modalTitle: '조용화',
@@ -309,7 +398,7 @@
             { 
                 id: 'user2', name: '김동욱', 
                 img: 'image_2.png', 
-                bgUrl: 'be/dong.jpg', // 예: 'bg_dongwook.jpg'
+                bgUrl: 'be/dong.jpg',
                 bubble: '무슨 말을 할까나', color: '#ffcf70',
                 pos: { top: '48%', left: '45%' },
                 modalTitle: '김동욱',
@@ -319,7 +408,7 @@
             { 
                 id: 'user5', name: '권태윤', 
                 img: 'image_1.png', 
-                bgUrl: 'be/권태윤.png', // 예: 'bg_taeyoon.jpg'
+                bgUrl: 'be/권태윤.png',
                 bubble: '안녕하세요 권태윤이에요 다음에 마을 사람들과 모여 같이 소통해봐요!', color: '#ffb7b2',
                 pos: { top: '72%', left: '22%' },
                 modalTitle: '권태윤',
@@ -329,7 +418,7 @@
             { 
                 id: 'user3', name: '손아림', 
                 img: 'image_0.png', 
-                bgUrl: 'be/so.jpg', // 예: 'bg_arim.jpg'
+                bgUrl: 'be/so.jpg',
                 bubble: '야구 무슨 팀 좋아해요?', color: '#d4c4b7',
                 pos: { top: '72%', left: '70%' },
                 modalTitle: '손아림',
@@ -347,39 +436,42 @@
         const detailScreen = document.getElementById('detail-screen'); 
         const tooltip = document.getElementById('hover-tooltip');
         const bgmAudio = document.getElementById('bgm-audio'); 
+        const fadeOverlay = document.getElementById('fade-overlay'); // 전환 오버레이 요소
         
-        // --- 1. 탑승 버튼 클릭 시 BGM 재생 및 로딩 시작 ---
+        let visitedMembers = new Set();
+        let isEndingTriggered = false;
+
         startBtn.addEventListener('click', () => {
-            // 버튼 숨기고 로딩바 표시
-            startBtn.style.display = 'none';
+            // ⭐ display:none 대신 부드러운 클래스 토글 적용 (레이아웃 붕괴 방지)
+            startBtn.classList.add('hidden');
             loadingArea.classList.remove('hidden');
 
-            // 🎵 사용자 상호작용(클릭) 이벤트 안에서 오디오 재생하므로 브라우저 차단 우회 성공!
             bgmAudio.volume = 0.5;
-            bgmAudio.play().catch(error => {
-                console.log("BGM 재생 오류:", error);
-            });
+            bgmAudio.play().catch(error => console.log("BGM 재생 오류:", error));
 
-            // 로딩 바 애니메이션 시작
             let width = 0;
             const loadingInterval = setInterval(() => {
                 width += 2; 
                 progressBar.style.width = width + '%';
                 if (width >= 100) {
                     clearInterval(loadingInterval);
+                    // 인트로 로딩이 끝나면 오버레이를 활성화하여 화면을 가림
+                    fadeOverlay.classList.add('active');
+                    
                     setTimeout(() => {
-                        introScreen.style.opacity = '0';
+                        introScreen.classList.add('hidden');
+                        mapScreen.classList.remove('hidden');
+                        renderMap();
+                        
+                        // 화면을 가린 상태에서 지도를 로드한 뒤, 오버레이를 걷어냄
                         setTimeout(() => {
-                            introScreen.classList.add('hidden');
-                            mapScreen.classList.remove('hidden');
-                            renderMap();
-                        }, 1000);
-                    }, 500);
+                            fadeOverlay.classList.remove('active');
+                        }, 500);
+                    }, 1000); // 오버레이가 완전히 덮이는 시간 대기
                 }
             }, 30);
         });
 
-        // --- 2. 마을 지도 렌더링 ---
         function renderMap() {
             mapContainer.innerHTML = '';
             teamMembers.forEach(member => {
@@ -420,9 +512,11 @@
             });
         }
 
-        // --- 3. 개인 프로필 모달 ---
         let bubbleTimer;
         function openDetailView(member) {
+            visitedMembers.add(member.id);
+
+            // 지도를 부드럽게 숨기고 상세창을 부드럽게 표시
             mapScreen.classList.add('hidden');
             detailScreen.classList.remove('hidden');
             document.documentElement.style.setProperty('--theme-color', member.color);
@@ -450,9 +544,35 @@
             document.getElementById('speechBubble').classList.remove('show');
         }
 
+        // ⭐ 지도로 돌아가기 (엔딩 연출 적용)
         document.getElementById('closeBtn').addEventListener('click', () => {
-            detailScreen.classList.add('hidden');
-            mapScreen.classList.remove('hidden');
+            
+            if (visitedMembers.size === teamMembers.length && !isEndingTriggered) {
+                isEndingTriggered = true; 
+                
+                // 1. 화면 전체를 하얗게 덮는 오버레이 활성화
+                fadeOverlay.classList.add('active');
+
+                // 2. 화면이 완전히 하얗게 된 뒤(1초 후) 백그라운드에서 스크린 교체
+                setTimeout(() => {
+                    detailScreen.classList.add('hidden');
+                    mapScreen.classList.add('hidden');
+                    
+                    const endingScreen = document.getElementById('ending-screen');
+                    endingScreen.classList.remove('hidden');
+                    
+                    // 3. 다시 오버레이를 걷어내며 엔딩 화면을 서서히 보여줌
+                    setTimeout(() => {
+                        fadeOverlay.classList.remove('active');
+                    }, 300);
+
+                }, 1000); 
+
+            } else {
+                // 아직 모두 방문하지 않았다면 평소처럼 부드럽게 지도로 복귀
+                detailScreen.classList.add('hidden');
+                mapScreen.classList.remove('hidden');
+            }
         });
 
         const charImg = document.getElementById('characterImg');
