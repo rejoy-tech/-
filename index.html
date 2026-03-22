@@ -46,6 +46,7 @@
             width: 600px; height: 15px; 
             background-color: #e8f4f1; border-radius: 15px; 
             overflow: hidden; border: 2px solid #a2d5c6;
+            margin: 0 auto;
         }
         .progress-bar { 
             width: 0%; height: 100%; 
@@ -86,7 +87,7 @@
         }
         .map-plot:hover { transform: scale(1.1) translateY(-10px); z-index: 20; }
 
-        /* 지도용 말풍선 (새로 추가) */
+        /* 지도용 말풍선 */
         .map-bubble {
             position: absolute; top: -75px;
             background-color: #ffcf70; color: #6d5445;
@@ -104,7 +105,6 @@
             border-width: 8px 8px 0; border-style: solid;
             border-color: #ffcf70 transparent transparent transparent;
         }
-        /* 호버 시 말풍선 등장 */
         .map-plot:hover .map-bubble {
             opacity: 1; transform: scale(1);
         }
@@ -149,20 +149,24 @@
             border: 2px solid #d4c4b7;
         }
 
-        /* --- 4. 상세 화면 --- */
+        /* --- 4. 상세 화면 (모달 배경) --- */
         #detail-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(244, 241, 234, 0.95);
             display: flex; justify-content: center; align-items: center;
             z-index: 1000; overflow-y: auto; padding: 20px;
             box-sizing: border-box;
+            transition: background 0.4s ease-in-out; 
         }
 
         .detail-card {
-            background-color: #ffffff; width: 100%; max-width: 500px;
+            background-color: rgba(255, 255, 255, 0.85); 
+            backdrop-filter: blur(5px); 
+            -webkit-backdrop-filter: blur(5px);
+            width: 100%; max-width: 500px;
             padding: 40px 30px; border-radius: 40px;
             border: 4px dashed var(--theme-color);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
             text-align: center; position: relative;
             animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
@@ -192,9 +196,11 @@
         .speech-bubble.show { transform: translateX(-50%) scale(1); }
 
         .info-box {
-            background-color: #faf8f5; padding: 20px; border-radius: 20px;
+            background-color: rgba(250, 248, 245, 0.8); 
+            padding: 20px; border-radius: 20px;
             margin-top: 10px; margin-bottom: 25px; text-align: left;
             border-left: 8px solid var(--theme-color);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
         .info-box h2 { margin: 0 0 10px 0; color: var(--theme-color); font-size: 1.5rem; }
         .info-box p { color: #887a6f; line-height: 1.6; margin-bottom: 15px; font-size: 1.1rem; }
@@ -204,12 +210,21 @@
         .task-list li::before { content: "🍃"; margin-right: 8px; font-size: 1.1rem; }
 
         .action-btn {
-            background-color: #d4c4b7; border: none; padding: 15px 30px;
-            font-family: 'Jua', sans-serif; font-size: 1.2rem; color: white;
-            border-radius: 30px; cursor: pointer; box-shadow: 0 6px 0 #bcaea2;
+            background-color: #558a74; border: none; padding: 15px 30px;
+            font-family: 'Jua', sans-serif; font-size: 1.4rem; color: white;
+            border-radius: 30px; cursor: pointer; box-shadow: 0 6px 0 #3a6352;
             transition: all 0.1s; width: 100%;
         }
-        .action-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #bcaea2; }
+        .action-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #3a6352; }
+        
+        /* 돌아가기 버튼 전용 색상 */
+        .return-btn {
+            background-color: #d4c4b7;
+            box-shadow: 0 6px 0 #bcaea2;
+        }
+        .return-btn:active {
+            box-shadow: 0 0 0 #bcaea2;
+        }
 
         @keyframes popIn {
             from { opacity: 0; transform: scale(0.8); }
@@ -219,12 +234,28 @@
 </head>
 <body>
 
+    <!-- ========================================== -->
+    <!-- 🎵 [수정칸 1] BGM 음악 파일 설정            -->
+    <!-- src 안에 구하신 배경음악 파일 이름(.mp3)을 넣으세요 -->
+    <!-- ========================================== -->
+    <audio id="bgm-audio" loop>
+        <source src="bgm\🏝모동숲 오프닝 브금 1hour.m4a" type="audio/mpeg">
+    </audio>
+
     <div id="intro-screen">
         <div class="intro-text-box">
-            <div class="loading-text">바메공행 Nook Inc. 전세기 이동 중... ✈️</div>
-            <div class="loading-text-en">Bound for Bamegong Forest...</div>
-            <div class="progress-bar-container">
-                <div class="progress-bar" id="progress-bar"></div>
+            <div class="loading-text">Nook Inc. 패키지 투어 안내데스크 🍃</div>
+            <div class="loading-text-en">Welcome to Bamegong Forest</div>
+            
+            <!-- ⭐ 시작(탑승) 버튼 추가 -->
+            <button class="action-btn" id="startBtn" style="margin-top: 30px; width: 80%;">비행기 탑승하기 ✈️</button>
+
+            <!-- 탑승 버튼을 누르면 이 로딩 영역이 나타납니다 -->
+            <div id="loading-area" class="hidden" style="margin-top: 30px;">
+                <div class="loading-text-en" style="margin-bottom: 10px;">바메공 숲으로 이동 중...</div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -246,15 +277,19 @@
                 <p id="modal-desc">설명</p>
                 <ul class="task-list" id="modal-tasks"></ul>
             </div>
-            <button class="action-btn" id="closeBtn">✈️ 마을 지도로 돌아가기</button>
+            <button class="action-btn return-btn" id="closeBtn">✈️ 마을 지도로 돌아가기</button>
         </div>
     </div>
 
     <script>
+        // ==========================================
+        // 📝 [수정칸 2] 팀원 데이터 설정
+        // ==========================================
         const teamMembers = [
             { 
                 id: 'user1', name: '박서연', 
                 img: 'image_4.png', 
+                bgUrl: 'be/박서연.jpg', // 예: 'bg_seoyeon.jpg'
                 bubble: '아 왜 눌러요', color: '#a2d5c6',
                 pos: { top: '22%', left: '18%' },
                 modalTitle: '박서연',
@@ -264,6 +299,7 @@
             { 
                 id: 'user4', name: '조용화', 
                 img: 'image_3.png', 
+                bgUrl: 'be/jo.jpg', // 예: 'bg_yonghwa.jpg'
                 bubble: '저 아세요?', color: '#558a74',
                 pos: { top: '22%', left: '72%' },
                 modalTitle: '조용화',
@@ -273,24 +309,27 @@
             { 
                 id: 'user2', name: '김동욱', 
                 img: 'image_2.png', 
-                bubble: '오늘의 회의록을 공유할게요! 🎤', color: '#ffcf70',
+                bgUrl: 'be/dong.jpg', // 예: 'bg_dongwook.jpg'
+                bubble: '무슨 말을 할까나', color: '#ffcf70',
                 pos: { top: '48%', left: '45%' },
-                modalTitle: '프론트엔드 UI/UX 개발',
-                modalDesc: '편리하고 직관적인 웹 화면을 만듭니다.',
-                modalTasks: ['인터랙션 구현', '상세 모달 제작', '반응형 최적화']
+                modalTitle: '김동욱',
+                modalDesc: '럭비공같이 통통튀는 매력을 지닌 외유내강의 남자',
+                modalTasks: ['취미: 농구, 배구', '특징: 키:187.5', '별명: 모아이, 똥식이']
             },
             { 
                 id: 'user5', name: '권태윤', 
                 img: 'image_1.png', 
-                bubble: '버튼 디자인 완성했어용! 🧵', color: '#ffb7b2',
+                bgUrl: 'be/권태윤.png', // 예: 'bg_taeyoon.jpg'
+                bubble: '안녕하세요 권태윤이에요 다음에 마을 사람들과 모여 같이 소통해봐요!', color: '#ffb7b2',
                 pos: { top: '72%', left: '22%' },
-                modalTitle: '브랜드 캐릭터 디자인',
-                modalDesc: '마을을 포근하게 만들어줄 에셋을 디자인합니다.',
-                modalTasks: ['팀 로고 디자인', 'UI 컴포넌트 제작', 'PPT 템플릿']
+                modalTitle: '권태윤',
+                modalDesc: '바메공 마을의 초급 기획자',
+                modalTasks: ['기가 잘 빨려요', '광대에요', '낭만있어요']
             },
             { 
                 id: 'user3', name: '손아림', 
                 img: 'image_0.png', 
+                bgUrl: 'be/so.jpg', // 예: 'bg_arim.jpg'
                 bubble: '새로운 버그를 발굴했어요! 🦴', color: '#d4c4b7',
                 pos: { top: '72%', left: '70%' },
                 modalTitle: '백엔드 서버 구축',
@@ -298,31 +337,49 @@
                 modalTasks: ['API 개발', 'DB 스키마 설계', '서버 호스팅']
             }
         ];
-
+        
         const introScreen = document.getElementById('intro-screen');
+        const startBtn = document.getElementById('startBtn');
+        const loadingArea = document.getElementById('loading-area');
         const progressBar = document.getElementById('progress-bar');
         const mapScreen = document.getElementById('map-screen');
         const mapContainer = document.getElementById('map-container');
-        const detailScreen = document.getElementById('detail-screen');
+        const detailScreen = document.getElementById('detail-screen'); 
         const tooltip = document.getElementById('hover-tooltip');
+        const bgmAudio = document.getElementById('bgm-audio'); 
         
-        let width = 0;
-        const loadingInterval = setInterval(() => {
-            width += 2; 
-            progressBar.style.width = width + '%';
-            if (width >= 100) {
-                clearInterval(loadingInterval);
-                setTimeout(() => {
-                    introScreen.style.opacity = '0';
-                    setTimeout(() => {
-                        introScreen.classList.add('hidden');
-                        mapScreen.classList.remove('hidden');
-                        renderMap();
-                    }, 1000);
-                }, 500);
-            }
-        }, 30);
+        // --- 1. 탑승 버튼 클릭 시 BGM 재생 및 로딩 시작 ---
+        startBtn.addEventListener('click', () => {
+            // 버튼 숨기고 로딩바 표시
+            startBtn.style.display = 'none';
+            loadingArea.classList.remove('hidden');
 
+            // 🎵 사용자 상호작용(클릭) 이벤트 안에서 오디오 재생하므로 브라우저 차단 우회 성공!
+            bgmAudio.volume = 0.5;
+            bgmAudio.play().catch(error => {
+                console.log("BGM 재생 오류:", error);
+            });
+
+            // 로딩 바 애니메이션 시작
+            let width = 0;
+            const loadingInterval = setInterval(() => {
+                width += 2; 
+                progressBar.style.width = width + '%';
+                if (width >= 100) {
+                    clearInterval(loadingInterval);
+                    setTimeout(() => {
+                        introScreen.style.opacity = '0';
+                        setTimeout(() => {
+                            introScreen.classList.add('hidden');
+                            mapScreen.classList.remove('hidden');
+                            renderMap();
+                        }, 1000);
+                    }, 500);
+                }
+            }, 30);
+        });
+
+        // --- 2. 마을 지도 렌더링 ---
         function renderMap() {
             mapContainer.innerHTML = '';
             teamMembers.forEach(member => {
@@ -332,13 +389,9 @@
                 plot.style.left = member.pos.left;
                 plot.style.setProperty('--house-color', member.color);
                 
-                // 지도용 말풍선 추가
-                // 지도용 말풍선 추가
                 const bubble = document.createElement('div');
                 bubble.className = 'map-bubble';
-                // ✨ 대사 대신 스포일러가 없는 귀여운 문구나 이름으로 변경!
                 bubble.innerText = member.name + '의 집'; 
-                // (만약 캐릭터 이름이 나오게 하고 싶다면 bubble.innerText = member.name + '의 집'; 으로 하셔도 좋습니다.)
                 plot.appendChild(bubble);
 
                 const house = document.createElement('div');
@@ -367,11 +420,21 @@
             });
         }
 
+        // --- 3. 개인 프로필 모달 ---
         let bubbleTimer;
         function openDetailView(member) {
             mapScreen.classList.add('hidden');
             detailScreen.classList.remove('hidden');
             document.documentElement.style.setProperty('--theme-color', member.color);
+            
+            if(member.bgUrl && member.bgUrl.trim() !== '') {
+                detailScreen.style.background = `url('${member.bgUrl}')`;
+                detailScreen.style.backgroundSize = 'cover';
+                detailScreen.style.backgroundPosition = 'center';
+            } else {
+                detailScreen.style.background = 'rgba(244, 241, 234, 0.95)';
+            }
+
             document.getElementById('characterImg').src = member.img;
             document.getElementById('speechBubble').innerText = member.bubble;
             document.getElementById('modal-title').innerText = member.modalTitle;
