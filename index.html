@@ -3,587 +3,299 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>동물의 숲 프로젝트 마을</title>
+    <title>바메공 숲 - 여행 다이어리</title>
     <style>
-        /* --- 1. 폰트 및 공통 설정 --- */
         @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
         
         :root {
-            --theme-color: #a2d5c6; 
+            --ac-green: #78c8a6;
+            --ac-cream: #fdf8e7;
+            --ac-brown: #7b6255;
+            --ac-yellow: #f1db75;
+            --phone-frame: #1a1a1a;
+            --phone-bg: #e0f2e9;
+            --loading-bg: #f4f1ea; /* ⭐️ 동숲 특유의 따뜻한 로딩 배경색 */
         }
 
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
             font-family: 'Jua', sans-serif;
-            background-color: #e0f2e9; 
-            overflow: hidden;
-            color: #6d5445;
-        }
-
-        /* ⭐ 부드러운 화면 전환을 위해 hidden 클래스 수정 (display:none 대신 opacity 사용) */
-        .hidden { 
-            opacity: 0 !important; 
-            visibility: hidden !important; 
-            pointer-events: none !important; 
-        }
-
-        /* 모든 메인 스크린에 공통 전환 효과 적용 */
-        .screen-layer {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            transition: opacity 0.6s ease-in-out, visibility 0.6s ease-in-out;
-            z-index: 100;
-        }
-
-        /* --- 2. 인트로 화면 --- */
-        #intro-screen {
-            background-color: #f4f1ea;
-            display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
-            z-index: 9999;
-        }
-
-        .intro-text-box {
-            background-color: #fff; padding: 40px 30px; border-radius: 40px;
-            border: 4px dashed #d4c4b7;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08); text-align: center;
-            animation: float 3s ease-in-out infinite;
-            width: 90%; /* 화면 크기에 맞춰 반응형으로 조절 */
-            max-width: 500px; /* 최대 크기 제한 */
-            box-sizing: border-box;
-        }
-
-        .loading-text { font-size: 1.8rem; color: #558a74; margin-bottom: 5px; word-break: keep-all; }
-        .loading-text-en { font-size: 1.1rem; color: #928377; margin-bottom: 25px;}
-        
-        /* ⭐ 인트로 하단 영역 고정: 버튼과 로딩바 교체 시 박스 크기 변경(덜컹거림) 방지 */
-        .intro-action-area {
-            position: relative;
-            width: 100%;
-            height: 70px; /* 고정된 높이를 주어 네모 상자가 찌그러지지 않게 방어 */
-        }
-
-        #startBtn {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 80%;
-            margin: 0;
-            transition: all 0.4s ease-in-out;
-        }
-        
-        #startBtn.hidden {
-            transform: translate(-50%, -50%) scale(0.8) !important;
-        }
-
-        #loading-area {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 100%;
-            transition: all 0.4s ease-in-out;
-            transition-delay: 0.1s; /* 버튼이 살짝 사라진 뒤 부드럽게 등장 */
-        }
-
-        .progress-bar-container { 
-            width: 100%; /* 고정 픽셀 대신 상자에 꽉 차도록 변경 */
-            height: 15px; 
-            background-color: #e8f4f1; border-radius: 15px; 
-            overflow: hidden; border: 2px solid #a2d5c6;
-            margin: 0 auto;
-        }
-        .progress-bar { 
-            width: 0%; height: 100%; 
-            background-color: #a2d5c6; 
-            transition: width 0.1s linear; 
-        }
-
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
-        }
-
-        /* --- 3. 메인 지도 화면 --- */
-        #map-screen {
-            background: 
-                radial-gradient(circle at 20% 30%, #83c497 10%, transparent 20%),
-                radial-gradient(circle at 80% 70%, #83c497 15%, transparent 30%),
-                radial-gradient(circle at 50% 50%, #a4e0b7 40%, transparent 60%);
-            background-color: #92d3a6;
-            background-size: cover; background-position: center;
-            z-index: 100;
-        }
-
-        .map-title {
-            position: absolute; top: 30px; left: 50%; transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.95);
-            padding: 12px 35px; border-radius: 30px;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-            z-index: 10; font-size: 1.6rem; color: #558a74;
-            border: 3px solid #d4c4b7;
-        }
-
-        /* 지도 위 구역 */
-        .map-plot {
-            position: absolute; display: flex; flex-direction: column; align-items: center;
-            cursor: pointer; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 5;
-        }
-        .map-plot:hover { transform: scale(1.1) translateY(-10px); z-index: 20; }
-
-        /* 지도용 말풍선 */
-        .map-bubble {
-            position: absolute; top: -75px;
-            background-color: #ffcf70; color: #6d5445;
-            padding: 8px 15px; border-radius: 15px;
-            font-size: 1rem; font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            white-space: nowrap; opacity: 0;
-            transform: scale(0);
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 30; pointer-events: none;
-            border: 2px solid #e6ba65;
-        }
-        .map-bubble::after {
-            content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
-            border-width: 8px 8px 0; border-style: solid;
-            border-color: #ffcf70 transparent transparent transparent;
-        }
-        .map-plot:hover .map-bubble {
-            opacity: 1; transform: scale(1);
-        }
-
-        .house {
-            position: relative; width: 70px; height: 50px;
-            background-color: #fffaeb; border: 4px solid #8c7662; border-radius: 10px;
-            margin-bottom: -15px;
-            display: flex; justify-content: center; align-items: flex-end;
-            box-shadow: 0 8px 0 rgba(0,0,0,0.08); z-index: 1;
-        }
-        .house-roof {
-            position: absolute; top: -24px; width: 86px; height: 35px;
-            background-color: var(--house-color, #a2d5c6);
-            border: 4px solid #8c7662; border-radius: 20px 20px 8px 8px;
-        }
-        .house-chimney {
-            position: absolute; top: -35px; right: 8px; width: 14px; height: 20px;
-            background-color: #d4c4b7; border: 4px solid #8c7662; border-radius: 4px; z-index: -1;
-        }
-        .house-door {
-            width: 20px; height: 26px; background-color: #c4a482;
-            border: 4px solid #8c7662; border-bottom: none; border-radius: 10px 10px 0 0;
-        }
-
-        .map-pin { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; }
-        .map-pin img {
-            width: 60px; height: 60px; object-fit: cover;
-            border-radius: 50%; border: 4px solid var(--house-color, #fff); background-color: #fff;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.2);
-        }
-        .map-pin::after {
-            content: ''; display: block; width: 35px; height: 8px;
-            background-color: rgba(0,0,0,0.15); border-radius: 50%; margin-top: -4px; z-index: -1;
-        }
-
-        #hover-tooltip {
-            position: absolute; display: none;
-            background-color: rgba(255, 255, 255, 0.9); padding: 5px 12px; border-radius: 12px;
-            color: #6d5445; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            z-index: 200; pointer-events: none; font-size: 0.9rem;
-            border: 2px solid #d4c4b7;
-        }
-
-        /* --- 4. 상세 화면 (모달 배경) --- */
-        #detail-screen {
-            background-color: rgba(244, 241, 234, 0.95);
+            background-color: #2c3e50; 
+            background: url('https://www.transparenttextures.com/patterns/wood-pattern.png'), radial-gradient(circle at center, #5b7994, #2c3e50);
+            overflow: hidden; color: var(--ac-brown); user-select: none;
             display: flex; justify-content: center; align-items: center;
-            z-index: 500; overflow-y: auto; padding: 20px;
-            box-sizing: border-box;
-            background-size: cover; 
-            background-position: center;
         }
 
-        .detail-card {
-            background-color: rgba(255, 255, 255, 0.85); 
-            backdrop-filter: blur(5px); 
-            -webkit-backdrop-filter: blur(5px);
-            width: 100%; max-width: 500px;
-            padding: 40px 30px; border-radius: 40px;
-            border: 4px dashed var(--theme-color);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
-            text-align: center; position: relative;
-            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        /* --- 스마트폰 외형 --- */
+        .smartphone-container {
+            width: 380px; height: 780px;
+            background-color: var(--phone-frame);
+            border-radius: 50px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6), inset 0 0 0 4px #555;
+            position: relative;
+            transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        .smartphone-container.zoomed { transform: scale(1.6); filter: blur(8px); opacity: 0; pointer-events: none; }
+
+        .notch {
+            position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
+            width: 100px; height: 28px; background-color: var(--phone-frame);
+            border-radius: 20px; z-index: 200;
         }
 
-        .character-area { position: relative; display: inline-block; margin: 20px 0; }
-        .cute-img {
-            width: 160px; height: 160px; object-fit: cover;
-            border-radius: 50%; border: 8px solid var(--theme-color);
-            cursor: pointer; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            background-color: #e8f4f1;
+        .screen-content {
+            width: 350px; height: 750px; margin: 15px;
+            background-color: var(--phone-bg);
+            border-radius: 35px; overflow: hidden; position: relative;
         }
-        .cute-img:hover { transform: scale(1.05); }
 
-        .speech-bubble {
-            position: absolute; top: -50px; left: 50%;
-            transform: translateX(-50%) scale(0);
-            background-color: var(--theme-color); color: #ffffff;
-            padding: 12px 24px; border-radius: 25px; font-size: 1.2rem;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15); pointer-events: none; white-space: nowrap; z-index: 10;
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        .status-bar {
+            position: absolute; top: 0; left: 0; width: 100%; height: 45px;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 30px; box-sizing: border-box;
+            font-family: 'Noto Sans KR', sans-serif; font-size: 0.85rem; font-weight: bold;
+            color: #555; z-index: 150; pointer-events: none;
         }
-        .speech-bubble::after {
-            content: ''; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%);
-            border-width: 10px 10px 0; border-style: solid;
-            border-color: var(--theme-color) transparent transparent transparent;
-        }
-        .speech-bubble.show { transform: translateX(-50%) scale(1); }
 
-        .info-box {
-            background-color: rgba(250, 248, 245, 0.8); 
-            padding: 20px; border-radius: 20px;
-            margin-top: 10px; margin-bottom: 25px; text-align: left;
-            border-left: 8px solid var(--theme-color);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        /* ⭐️ 볼륨 HUD */
+        .volume-hud {
+            position: absolute; top: -50px; left: 50%; transform: translateX(-50%);
+            width: 150px; height: 30px; background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(10px); border-radius: 15px;
+            display: flex; align-items: center; padding: 0 15px; gap: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000; font-family: 'Noto Sans KR'; font-size: 0.8rem; font-weight: bold; color: #555;
         }
-        .info-box h2 { margin: 0 0 10px 0; color: var(--theme-color); font-size: 1.5rem; }
-        .info-box p { color: #887a6f; line-height: 1.6; margin-bottom: 15px; font-size: 1.1rem; }
+        .volume-hud.show { top: 40px; } 
+        .v-bar { flex-grow: 1; height: 6px; background: #ddd; border-radius: 3px; overflow: hidden; }
+        .v-fill { height: 100%; width: 50%; background: var(--ac-green); transition: width 0.1s; }
+
+        /* --- 홈 화면 --- */
+        #view-home {
+            width: 100%; height: 100%; position: absolute; top: 0; left: 0;
+            background: linear-gradient(to bottom, #a1c4fd, #c2e9fb); 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.6s; z-index: 50;
+        }
+        #view-home.fade-out { opacity: 0; pointer-events: none; }
+
+        .app-icon-wrapper { display: flex; flex-direction: column; align-items: center; gap: 12px; cursor: pointer; }
+        .app-icon { width: 80px; height: 80px; background: #fff; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.15); display: flex; justify-content: center; align-items: center; font-size: 3rem; }
+        .app-name { color: #fff; font-size: 0.9rem; font-weight: bold; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+
+        /* --- ⭐️ 로딩 화면 (배경색 픽스) --- */
+        #view-loading {
+            width: 100%; height: 100%; position: absolute; top: 0; left: 0;
+            background-color: var(--loading-bg); /* 검은색에서 베이지색으로 변경 */
+            z-index: 200; /* 모든 화면 최상단 */
+            display: flex; justify-content: center; align-items: center;
+            padding: 5px; opacity: 0; visibility: hidden; 
+            transition: opacity 0.3s ease-in-out; pointer-events: none;
+        }
+        #view-loading.active { opacity: 1; visibility: visible; pointer-events: auto; }
         
-        .task-list { list-style: none; padding: 0; margin: 0; }
-        .task-list li { margin-bottom: 8px; font-size: 1.05rem; color: #6d5445; }
-        .task-list li::before { content: "🍃"; margin-right: 8px; font-size: 1.1rem; }
-
-        .action-btn {
-            background-color: #558a74; border: none; padding: 15px 30px;
-            font-family: 'Jua', sans-serif; font-size: 1.4rem; color: white;
-            border-radius: 30px; cursor: pointer; box-shadow: 0 6px 0 #3a6352;
-            transition: all 0.1s; width: 100%;
+        /* 🌴 야자수 로딩 아이콘 */
+        .loading-icon {
+            font-size: 3rem; /* 크기 확대 */
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.1));
+            animation: bounce 0.8s infinite alternate cubic-bezier(0.45, 0.05, 0.55, 0.95);
         }
-        .action-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #3a6352; }
+        @keyframes bounce {
+            0% { transform: translateY(0) rotate(-5deg); }
+            100% { transform: translateY(-20px) rotate(5deg); }
+        }
+
+        /* --- 맵 화면 --- */
+        #view-map {
+            width: 100%; height: 100%; position: absolute; top: 0; left: 0;
+            background: url('be/sm.jpg') center/cover no-repeat;
+            background-color: #72cc9b; 
+            opacity: 0; z-index: 40;
+        }
+        #view-map.active { opacity: 1; }
+
+        .map-pin { position: absolute; display: flex; flex-direction: column; align-items: center; cursor: pointer; transform: translate(-50%, -100%); transition: transform 0.3s; }
+        .map-pin:hover { transform: translate(-50%, -100%) scale(1.1); }
+        .pin-photo { width: 65px; height: 65px; object-fit: contain; filter: drop-shadow(0 5px 6px rgba(0,0,0,0.3)); }
+        .pin-name { background: rgba(123, 98, 85, 0.9); color: #fff; font-size: 0.8rem; padding: 2px 8px; border-radius: 12px; margin-top: 2px; }
+
+        /* --- 다이어리 & 엔딩 (이전과 동일) --- */
+        #diary-portal, #ending-portal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); opacity: 0; visibility: hidden; z-index: 2000; transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1); }
+        #diary-portal.active, #ending-portal.active { opacity: 1; visibility: visible; }
+
+        .scrapbook, .ending-scrapbook { width: 90%; max-width: 900px; height: 80vh; max-height: 600px; background-color: #fff; border-radius: 30px; box-shadow: 0 40px 100px rgba(0,0,0,0.5); display: flex; overflow: hidden; transform: scale(0.8) translateY(50px); transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1); position: relative; }
+        #diary-portal.active .scrapbook, #ending-portal.active .ending-scrapbook { transform: scale(1) translateY(0); }
         
-        .return-btn {
-            background-color: #d4c4b7;
-            box-shadow: 0 6px 0 #bcaea2;
-        }
-        .return-btn:active {
-            box-shadow: 0 0 0 #bcaea2;
-        }
+        .book-left { width: 45%; background-color: #f4f1ea; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 30px; border-right: 2px dashed #ccc; box-sizing: border-box; position: relative; }
+        .photo-frame { width: 100%; aspect-ratio: 4/5; background: #fff; padding: 12px 12px 50px 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transform: rotate(-3deg); }
+        .photo-frame img { width: 100%; height: 100%; object-fit: cover; }
+        .char-badge { position: absolute; bottom: 40px; right: 10px; width: 130px; height: 130px; border-radius: 50%; border: 8px solid #fff; box-shadow: 0 10px 20px rgba(0,0,0,0.2); object-fit: cover; transform: rotate(5deg); background: var(--ac-light-green); }
 
-        @keyframes popIn {
-            from { opacity: 0; transform: scale(0.8); }
-            to { opacity: 1; transform: scale(1); }
-        }
+        .book-right { width: 55%; padding: 50px; display: flex; flex-direction: column; background-image: linear-gradient(#e5e5e5 1px, transparent 1px); background-size: 100% 2.5em; background-color: #fff; box-sizing: border-box; }
+        .d-title { font-size: 2.2rem; color: var(--ac-green); margin-bottom: 15px; }
+        .d-desc { font-family: 'Noto Sans KR'; font-size: 1.1rem; line-height: 2.27; color: #444; flex-grow: 1; }
+        .close-diary { position: absolute; top: 20px; right: 20px; background: #ff9494; color: #fff; border: 4px solid #fff; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; font-size: 1.5rem; display: flex; justify-content: center; align-items: center; }
 
-        /* --- 5. 엔딩 화면 및 페이드 오버레이 --- */
-        #ending-screen {
-            background-color: #f4f1ea;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 2000;
-        }
-        .ending-card {
-            background-color: #fff; padding: 40px; border-radius: 30px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
-            text-align: center; border: 5px dashed #a2d5c6;
-            max-width: 600px; width: 90%;
-        }
-        .ending-card img {
-            width: 100%; max-height: 400px; object-fit: cover;
-            border-radius: 20px; margin-bottom: 25px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-        .ending-text { font-size: 1.8rem; color: #558a74; line-height: 1.5; }
-        .ending-sub-text { font-size: 1.2rem; color: #887a6f; margin-top: 15px; }
-
-        /* ⭐ 자연스러운 화면 전환을 담당하는 오버레이 (화이트아웃 효과) */
-        #fade-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #f4f1ea; /* 부드러운 베이지/화이트 색상 */
-            z-index: 10000; 
-            opacity: 0; 
-            pointer-events: none;
-            transition: opacity 1s ease-in-out; /* 1초 동안 천천히 화면을 덮음 */
-        }
-        #fade-overlay.active {
-            opacity: 1;
-            pointer-events: all;
-        }
+        .ending-scrapbook { flex-direction: column; padding: 40px; text-align: center; max-width: 700px; height: auto; }
+        .group-photo { width: 100%; max-height: 350px; object-fit: cover; border-radius: 20px; border: 8px solid #fff; box-shadow: 0 10px 20px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .btn-end { padding: 12px 30px; border-radius: 30px; font-family: 'Jua'; font-size: 1.2rem; cursor: pointer; border: 4px solid var(--ac-brown); margin: 0 10px; }
     </style>
 </head>
 <body>
 
-    <audio id="bgm-audio" loop>
-        <source src="bgm\🏝모동숲 오프닝 브금 1hour.m4a" type="audio/mpeg">
-    </audio>
+    <audio id="bgm-audio" loop><source src="bgm\🏝모동숲 오프닝 브금 1hour.m4a" type="audio/mpeg"></audio>
 
-    <!-- 화면 전환용 오버레이 막 -->
-    <div id="fade-overlay"></div>
+    <div class="smartphone-container" id="phone">
+        <div class="notch"></div>
+        <div class="screen-content">
+            <div class="volume-hud" id="volume-hud">
+                <span>🔈</span>
+                <div class="v-bar"><div class="v-fill" id="v-fill"></div></div>
+            </div>
 
-    <div id="intro-screen" class="screen-layer">
-        <div class="intro-text-box">
-            <div class="loading-text">Nook Inc. 패키지 투어 안내데스크 🍃</div>
-            <div class="loading-text-en">Welcome to Bamegong Forest</div>
-            
-            <!-- ⭐ 액션 영역을 고정된 컨테이너로 감싸기 -->
-            <div class="intro-action-area">
-                <button class="action-btn" id="startBtn">비행기 탑승하기 ✈️</button>
+            <div class="status-bar">
+                <span id="clock">12:00</span>
+                <span>5G 🔋 100%</span>
+            </div>
 
-                <div id="loading-area" class="hidden">
-                    <div class="loading-text-en" style="margin-bottom: 10px;">바메공 숲으로 이동 중...</div>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar" id="progress-bar"></div>
-                    </div>
+            <div id="view-home">
+                <div class="app-icon-wrapper" id="openAppBtn">
+                    <div class="app-icon">🍃</div>
+                    <p class="app-name">바메공 일기</p>
                 </div>
             </div>
+
+            <div id="view-loading">
+                <div class="loading-icon">🌴</div>
+            </div>
+
+            <div id="view-map"></div>
         </div>
     </div>
 
-    <div id="map-screen" class="screen-layer hidden">
-        <div class="map-title">🏕️ 모여봐요 바메공 숲</div>
-        <div id="map-container"></div>
-        <div id="hover-tooltip"></div>
-    </div>
-
-    <div id="detail-screen" class="screen-layer hidden">
-        <div class="detail-card">
-            <div class="character-area">
-                <div id="speechBubble" class="speech-bubble">안녕!</div>
-                <img src="" alt="주민 사진" class="cute-img" id="characterImg">
+    <div id="diary-portal">
+        <div class="scrapbook">
+            <div class="close-diary" id="closeBtn">✖</div>
+            <div class="book-left">
+                <div class="photo-frame"><img src="" id="d-bg-img"></div>
+                <img src="" class="char-badge" id="d-char-img">
             </div>
-            <div class="info-box">
-                <h2 id="modal-title">과제 주제</h2>
-                <p id="modal-desc">설명</p>
-                <ul class="task-list" id="modal-tasks"></ul>
+            <div class="book-right">
+                <div class="d-title" id="d-name"></div>
+                <div class="d-desc" id="d-desc"></div>
+                <div id="d-greeting" style="margin-top: auto; font-style: italic; color: #888;"></div>
             </div>
-            <button class="action-btn return-btn" id="closeBtn">✈️ 마을 지도로 돌아가기</button>
         </div>
     </div>
 
-    <!-- 엔딩 화면 -->
-    <div id="ending-screen" class="screen-layer hidden">
-        <div class="ending-card">
-            <!-- 단체 사진 주소 (임시로 생성된 이미지 URL 적용) -->
-            <img src="gr.png" alt="바메공 마을 단체 사진">
-            <div class="ending-text">
-                바메공 숲의 모든 주민들을 만나셨군요! 🎉
-            </div>
-            <div class="ending-sub-text">
-                앞으로 저희 5명이 함께 만들어갈<br>개성 넘치는 멋진 프로젝트를 기대해 주세요! 🍃
+    <div id="ending-portal">
+        <div class="ending-scrapbook">
+            <h2 style="font-size: 2rem; color: var(--ac-green);">바메공 숲 여행 완료! 🎉</h2>
+            <img src="gr.png" class="group-photo">
+            <p style="font-family: 'Noto Sans KR'; color: #666; margin-bottom: 20px;">모든 주민을 만났습니다. 즐거운 여행이었나요?</p>
+            <div>
+                <button class="btn-end" id="btn-close-app" style="background: #ff9494; color: #fff;">앱 종료</button>
+                <button class="btn-end" id="btn-reminisce" style="background: var(--ac-yellow);">다시 보기</button>
             </div>
         </div>
     </div>
 
     <script>
         const teamMembers = [
-            { 
-                id: 'user1', name: '박서연', 
-                img: 'image_4.png', 
-                bgUrl: 'be/박서연.jpg',
-                bubble: '아 왜 눌러요', color: '#a2d5c6',
-                pos: { top: '22%', left: '18%' },
-                modalTitle: '박서연',
-                modalDesc: '하하 안녕하세요 박서연이라고 합니다',
-                modalTasks: ['istp', '누워 있는거 짱 좋아함', '아이돌, 애니 주제로 얘기 걸어주면 입에 모터 달고 말할 수도..!']
-            },
-            { 
-                id: 'user4', name: '조용화', 
-                img: 'image_3.png', 
-                bgUrl: 'be/jo.jpg',
-                bubble: '저 아세요?', color: '#558a74',
-                pos: { top: '22%', left: '72%' },
-                modalTitle: '조용화',
-                modalDesc: '오늘도 마을을 위해 열심히 일해야지',
-                modalTasks: ['조용화는 조용한게 좋아요', '공부 좋아함?', '탁구 엄청 좋아해요']
-            },
-            { 
-                id: 'user2', name: '김동욱', 
-                img: 'image_2.png', 
-                bgUrl: 'be/dong.jpg',
-                bubble: '무슨 말을 할까나', color: '#ffcf70',
-                pos: { top: '48%', left: '45%' },
-                modalTitle: '김동욱',
-                modalDesc: '럭비공같이 통통튀는 매력을 지닌 외유내강의 남자',
-                modalTasks: ['취미: 농구, 배구', '특징: 키:187.5', '별명: 모아이, 똥식이']
-            },
-            { 
-                id: 'user5', name: '권태윤', 
-                img: 'image_1.png', 
-                bgUrl: 'be/권태윤.png',
-                bubble: '안녕하세요 권태윤이에요 다음에 마을 사람들과 모여 같이 소통해봐요!', color: '#ffb7b2',
-                pos: { top: '72%', left: '22%' },
-                modalTitle: '권태윤',
-                modalDesc: '바메공 마을의 초급 기획자',
-                modalTasks: ['기가 잘 빨려요', '광대에요', '낭만있어요']
-            },
-            { 
-                id: 'user3', name: '손아림', 
-                img: 'image_0.png', 
-                bgUrl: 'be/so.jpg',
-                bubble: '야구 무슨 팀 좋아해요?', color: '#d4c4b7',
-                pos: { top: '72%', left: '70%' },
-                modalTitle: '손아림',
-                modalDesc: '손아림이라고 해요 반가워요',
-                modalTasks: ['야구 젛아함', '먹짱', '귀차니즘 만렙']
-            }
+            { id: 'u1', name: '박서연', img: 'ch/image_4.png', bgUrl: 'be/박서연.jpg', color: '#78c8a6', pos: { top: '35%', left: '25%' }, desc: '조용한 숲속에서 낮잠 자는 것을 가장 좋아하는 주민입니다. 혼자만의 시간이 필요하지만 아이돌 이야기엔 진심이에요!', greeting: '"하하 안녕하세요 박서연입니다. 아이돌 얘기 환영!"' },
+            { id: 'u2', name: '조용화', img: 'ch/image_3.png', bgUrl: 'be/jo.jpg', color: '#558a74', pos: { top: '48%', left: '78%' }, desc: '바메공 숲의 기둥! 묵묵히 주민들을 도우며, 주말에는 탁구 한 판의 여유를 즐깁니다.', greeting: '"오늘도 마을을 위해 열심히! 탁구 좋아하세요?"' },
+            { id: 'u3', name: '김동욱', img: 'ch/image_2.png', bgUrl: 'be/dong.jpg', color: '#ffcf70', pos: { top: '50%', left: '15%' }, desc: '187.5cm의 큰 키를 가진 활동파 주민! 시원시원한 성격으로 모두와 잘 어울리는 모아이입니다.', greeting: '"통통튀는 매력남 김동욱입니다! 운동 같이 해요!"' },
+            { id: 'u4', name: '권태윤', img: 'ch/image_1.png', bgUrl: 'be/권태윤.png', color: '#ffb7b2', pos: { top: '62%', left: '85%' }, desc: '낭만을 쫓는 바메공 숲의 기획자! 에너지가 넘치고 소통하는 것을 정말 좋아하는 주민입니다.', greeting: '"안녕하세요 권태윤이에요! 낭만 가득한 하루 되세요!"' },
+            { id: 'u5', name: '손아림', img: 'ch/image_0.png', bgUrl: 'be/so.jpg', color: '#c4a482', pos: { top: '96%', left: '44%' }, desc: '야구와 맛있는 음식이 인생의 전부! 느긋한 성격이지만 야구 시즌엔 누구보다 뜨거워집니다.', greeting: '"손아림입니다! 오늘 야구 누가 이길까요?"' }
         ];
-        
-        const introScreen = document.getElementById('intro-screen');
-        const startBtn = document.getElementById('startBtn');
-        const loadingArea = document.getElementById('loading-area');
-        const progressBar = document.getElementById('progress-bar');
-        const mapScreen = document.getElementById('map-screen');
-        const mapContainer = document.getElementById('map-container');
-        const detailScreen = document.getElementById('detail-screen'); 
-        const tooltip = document.getElementById('hover-tooltip');
-        const bgmAudio = document.getElementById('bgm-audio'); 
-        const fadeOverlay = document.getElementById('fade-overlay'); // 전환 오버레이 요소
-        
+
+        const bgmAudio = document.getElementById('bgm-audio');
         let visitedMembers = new Set();
-        let isEndingTriggered = false;
 
-        startBtn.addEventListener('click', () => {
-            // ⭐ display:none 대신 부드러운 클래스 토글 적용 (레이아웃 붕괴 방지)
-            startBtn.classList.add('hidden');
-            loadingArea.classList.remove('hidden');
+        // 1. 앱 열기 (로딩 픽스)
+        document.getElementById('openAppBtn').addEventListener('click', () => {
+            bgmAudio.volume = 0.5; bgmAudio.play();
+            updateVolumeHUD();
 
-            bgmAudio.volume = 0.5;
-            bgmAudio.play().catch(error => console.log("BGM 재생 오류:", error));
+            // 즉시 로딩 화면 띄우기
+            const loadingView = document.getElementById('view-loading');
+            loadingView.classList.add('active');
 
-            let width = 0;
-            const loadingInterval = setInterval(() => {
-                width += 2; 
-                progressBar.style.width = width + '%';
-                if (width >= 100) {
-                    clearInterval(loadingInterval);
-                    // 인트로 로딩이 끝나면 오버레이를 활성화하여 화면을 가림
-                    fadeOverlay.classList.add('active');
-                    
-                    setTimeout(() => {
-                        introScreen.classList.add('hidden');
-                        mapScreen.classList.remove('hidden');
-                        renderMap();
-                        
-                        // 화면을 가린 상태에서 지도를 로드한 뒤, 오버레이를 걷어냄
-                        setTimeout(() => {
-                            fadeOverlay.classList.remove('active');
-                        }, 500);
-                    }, 1000); // 오버레이가 완전히 덮이는 시간 대기
-                }
-            }, 30);
-        });
-
-        function renderMap() {
-            mapContainer.innerHTML = '';
-            teamMembers.forEach(member => {
-                const plot = document.createElement('div');
-                plot.className = 'map-plot';
-                plot.style.top = member.pos.top;
-                plot.style.left = member.pos.left;
-                plot.style.setProperty('--house-color', member.color);
-                
-                const bubble = document.createElement('div');
-                bubble.className = 'map-bubble';
-                bubble.innerText = member.name + '의 집'; 
-                plot.appendChild(bubble);
-
-                const house = document.createElement('div');
-                house.className = 'house';
-                house.innerHTML = '<div class="house-chimney"></div><div class="house-roof"></div><div class="house-door"></div>';
-                plot.appendChild(house);
-
-                const pin = document.createElement('div');
-                pin.className = 'map-pin';
-                const img = document.createElement('img');
-                img.src = member.img;
-                pin.appendChild(img);
-                plot.appendChild(pin);
-                
-                plot.addEventListener('click', () => openDetailView(member));
-                
-                plot.addEventListener('mousemove', (e) => {
-                    tooltip.innerText = `${member.name} (클릭하여 방문)`;
-                    tooltip.style.display = 'block';
-                    tooltip.style.left = (e.pageX + 15) + 'px';
-                    tooltip.style.top = (e.pageY + 15) + 'px';
+            setTimeout(() => {
+                // 맵 데이터 렌더링
+                const mapView = document.getElementById('view-map');
+                mapView.innerHTML = ''; 
+                teamMembers.forEach(member => {
+                    const pin = document.createElement('div');
+                    pin.className = 'map-pin';
+                    pin.style.top = member.pos.top; pin.style.left = member.pos.left;
+                    pin.innerHTML = `<img src="${member.img}" class="pin-photo"><div class="pin-name">${member.name}</div>`;
+                    pin.onclick = () => openPortal(member);
+                    mapView.appendChild(pin);
                 });
-                plot.addEventListener('mouseleave', () => tooltip.style.display = 'none');
 
-                mapContainer.appendChild(plot);
-            });
-        }
+                mapView.classList.add('active');
+                document.getElementById('view-home').classList.add('fade-out');
 
-        let bubbleTimer;
-        function openDetailView(member) {
-            visitedMembers.add(member.id);
-
-            // 지도를 부드럽게 숨기고 상세창을 부드럽게 표시
-            mapScreen.classList.add('hidden');
-            detailScreen.classList.remove('hidden');
-            document.documentElement.style.setProperty('--theme-color', member.color);
-            
-            if(member.bgUrl && member.bgUrl.trim() !== '') {
-                detailScreen.style.background = `url('${member.bgUrl}')`;
-                detailScreen.style.backgroundSize = 'cover';
-                detailScreen.style.backgroundPosition = 'center';
-            } else {
-                detailScreen.style.background = 'rgba(244, 241, 234, 0.95)';
-            }
-
-            document.getElementById('characterImg').src = member.img;
-            document.getElementById('speechBubble').innerText = member.bubble;
-            document.getElementById('modal-title').innerText = member.modalTitle;
-            document.getElementById('modal-desc').innerText = member.modalDesc;
-            
-            const tasksList = document.getElementById('modal-tasks');
-            tasksList.innerHTML = ''; 
-            member.modalTasks.forEach(task => {
-                const li = document.createElement('li');
-                li.innerText = task;
-                tasksList.appendChild(li);
-            });
-            document.getElementById('speechBubble').classList.remove('show');
-        }
-
-        // ⭐ 지도로 돌아가기 (엔딩 연출 적용)
-        document.getElementById('closeBtn').addEventListener('click', () => {
-            
-            if (visitedMembers.size === teamMembers.length && !isEndingTriggered) {
-                isEndingTriggered = true; 
-                
-                // 1. 화면 전체를 하얗게 덮는 오버레이 활성화
-                fadeOverlay.classList.add('active');
-
-                // 2. 화면이 완전히 하얗게 된 뒤(1초 후) 백그라운드에서 스크린 교체
+                // 로딩 화면 제거
                 setTimeout(() => {
-                    detailScreen.classList.add('hidden');
-                    mapScreen.classList.add('hidden');
-                    
-                    const endingScreen = document.getElementById('ending-screen');
-                    endingScreen.classList.remove('hidden');
-                    
-                    // 3. 다시 오버레이를 걷어내며 엔딩 화면을 서서히 보여줌
-                    setTimeout(() => {
-                        fadeOverlay.classList.remove('active');
-                    }, 300);
+                    loadingView.classList.remove('active');
+                }, 400);
 
-                }, 1000); 
-
-            } else {
-                // 아직 모두 방문하지 않았다면 평소처럼 부드럽게 지도로 복귀
-                detailScreen.classList.add('hidden');
-                mapScreen.classList.remove('hidden');
-            }
+            }, 2500); 
         });
 
-        const charImg = document.getElementById('characterImg');
-        const detailBubble = document.getElementById('speechBubble');
-        charImg.addEventListener('click', function() {
-            const angle = Math.floor(Math.random() * 30) - 15;
-            charImg.style.transform = `rotate(${angle}deg) scale(0.95)`;
-            setTimeout(() => { charImg.style.transform = 'rotate(0deg) scale(1.05)'; }, 200);
-            detailBubble.classList.add('show');
-            clearTimeout(bubbleTimer);
-            bubbleTimer = setTimeout(() => { detailBubble.classList.remove('show'); }, 2500);
+        function openPortal(member) {
+            visitedMembers.add(member.id);
+            document.getElementById('phone').classList.add('zoomed');
+            document.getElementById('d-name').innerText = member.name + "의 일기";
+            document.getElementById('d-bg-img').src = member.bgUrl;
+            document.getElementById('d-char-img').src = member.img;
+            document.getElementById('d-desc').innerText = member.desc;
+            document.getElementById('d-greeting').innerText = member.greeting;
+            setTimeout(() => document.getElementById('diary-portal').classList.add('active'), 300);
+        }
+
+        document.getElementById('closeBtn').onclick = () => {
+            document.getElementById('diary-portal').classList.remove('active');
+            document.getElementById('phone').classList.remove('zoomed');
+            if (visitedMembers.size === teamMembers.length) {
+                setTimeout(() => {
+                    document.getElementById('phone').classList.add('zoomed');
+                    document.getElementById('ending-portal').classList.add('active');
+                }, 800);
+            }
+        };
+
+        document.getElementById('btn-close-app').onclick = () => {
+            location.reload(); // 가장 깔끔한 초기화
+        };
+
+        document.getElementById('btn-reminisce').onclick = () => {
+            visitedMembers.clear();
+            document.getElementById('ending-portal').classList.remove('active');
+            document.getElementById('phone').classList.remove('zoomed');
+        };
+
+        // 볼륨 & 시계
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('clock').innerText = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        }, 1000);
+
+        function updateVolumeHUD() {
+            document.getElementById('v-fill').style.width = (bgmAudio.volume * 100) + '%';
+            document.getElementById('volume-hud').classList.add('show');
+            setTimeout(() => document.getElementById('volume-hud').classList.remove('show'), 1500);
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                bgmAudio.volume = e.key === 'ArrowUp' ? Math.min(1, bgmAudio.volume + 0.1) : Math.max(0, bgmAudio.volume - 0.1);
+                updateVolumeHUD();
+            }
         });
     </script>
 </body>
